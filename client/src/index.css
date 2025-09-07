@@ -1,0 +1,307 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(222, 84%, 4%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 5%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(222, 84%, 5%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(271, 81%, 56%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --accent: hsl(217, 32%, 17%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62%, 30%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --ring: hsl(271, 81%, 56%);
+  --chart-1: hsl(203, 88%, 53%);
+  --chart-2: hsl(159, 100%, 36%);
+  --chart-3: hsl(42, 92%, 56%);
+  --chart-4: hsl(147, 78%, 41%);
+  --chart-5: hsl(341, 75%, 50%);
+  --sidebar: hsl(222, 84%, 5%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(271, 81%, 56%);
+  --sidebar-primary-foreground: hsl(210, 40%, 98%);
+  --sidebar-accent: hsl(217, 32%, 17%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(217, 32%, 17%);
+  --sidebar-ring: hsl(271, 81%, 56%);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Georgia', serif;
+  --font-mono: 'Fira Code', monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(271, 81%, 56%, 0);
+  --shadow-xs: 0px 2px 0px 0px hsl(271, 81%, 56%, 0);
+  --shadow-sm: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 1px 2px -1px hsl(271, 81%, 56%, 0);
+  --shadow: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 1px 2px -1px hsl(271, 81%, 56%, 0);
+  --shadow-md: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 2px 4px -1px hsl(271, 81%, 56%, 0);
+  --shadow-lg: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 4px 6px -1px hsl(271, 81%, 56%, 0);
+  --shadow-xl: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 8px 10px -1px hsl(271, 81%, 56%, 0);
+  --shadow-2xl: 0px 2px 0px 0px hsl(271, 81%, 56%, 0);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* Mood Colors */
+  --mood-happy: hsl(45, 100%, 65%);
+  --mood-stressed: hsl(0, 85%, 60%);
+  --mood-calm: hsl(200, 85%, 60%);
+  --mood-motivated: hsl(120, 85%, 60%);
+  --mood-curious: hsl(280, 85%, 70%);
+  --mood-grateful: hsl(320, 75%, 65%);
+  --mood-excited: hsl(30, 100%, 60%);
+  --mood-peaceful: hsl(180, 70%, 70%);
+  --mood-energetic: hsl(60, 100%, 50%);
+  --mood-reflective: hsl(240, 60%, 70%);
+}
+
+.dark {
+  --background: hsl(222, 84%, 4%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 5%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(222, 84%, 5%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(271, 81%, 56%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --accent: hsl(217, 32%, 17%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62%, 30%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --ring: hsl(271, 81%, 56%);
+  --chart-1: hsl(203, 88%, 53%);
+  --chart-2: hsl(159, 100%, 36%);
+  --chart-3: hsl(42, 92%, 56%);
+  --chart-4: hsl(147, 78%, 41%);
+  --chart-5: hsl(341, 75%, 50%);
+  --sidebar: hsl(222, 84%, 5%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(271, 81%, 56%);
+  --sidebar-primary-foreground: hsl(210, 40%, 98%);
+  --sidebar-accent: hsl(217, 32%, 17%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(217, 32%, 17%);
+  --sidebar-ring: hsl(271, 81%, 56%);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-serif: 'Georgia', serif;
+  --font-mono: 'Fira Code', monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(271, 81%, 56%, 0);
+  --shadow-xs: 0px 2px 0px 0px hsl(271, 81%, 56%, 0);
+  --shadow-sm: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 1px 2px -1px hsl(271, 81%, 56%, 0);
+  --shadow: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 1px 2px -1px hsl(271, 81%, 56%, 0);
+  --shadow-md: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 2px 4px -1px hsl(271, 81%, 56%, 0);
+  --shadow-lg: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 4px 6px -1px hsl(271, 81%, 56%, 0);
+  --shadow-xl: 0px 2px 0px 0px hsl(271, 81%, 56%, 0), 0px 8px 10px -1px hsl(271, 81%, 56%, 0);
+  --shadow-2xl: 0px 2px 0px 0px hsl(271, 81%, 56%, 0);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background: linear-gradient(135deg, var(--background) 0%, hsl(222, 84%, 8%) 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .glassmorphism {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .mood-card {
+    transition: all 0.3s ease;
+  }
+
+  .mood-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  .aura-tree {
+    filter: drop-shadow(0 0 10px rgba(139, 69, 219, 0.3));
+  }
+
+  .mood-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .mood-happy-bg {
+    background: linear-gradient(135deg, var(--mood-happy) 0%, hsl(45, 80%, 50%) 100%);
+  }
+
+  .mood-stressed-bg {
+    background: linear-gradient(135deg, var(--mood-stressed) 0%, hsl(0, 70%, 45%) 100%);
+  }
+
+  .mood-calm-bg {
+    background: linear-gradient(135deg, var(--mood-calm) 0%, hsl(200, 70%, 45%) 100%);
+  }
+
+  .mood-motivated-bg {
+    background: linear-gradient(135deg, var(--mood-motivated) 0%, hsl(120, 70%, 45%) 100%);
+  }
+
+  .mood-curious-bg {
+    background: linear-gradient(135deg, var(--mood-curious) 0%, hsl(280, 70%, 55%) 100%);
+  }
+
+  .mood-grateful-bg {
+    background: linear-gradient(135deg, var(--mood-grateful) 0%, hsl(320, 60%, 50%) 100%);
+  }
+
+  .mood-excited-bg {
+    background: linear-gradient(135deg, var(--mood-excited) 0%, hsl(30, 85%, 45%) 100%);
+  }
+
+  .mood-peaceful-bg {
+    background: linear-gradient(135deg, var(--mood-peaceful) 0%, hsl(180, 55%, 55%) 100%);
+  }
+
+  .mood-energetic-bg {
+    background: linear-gradient(135deg, var(--mood-energetic) 0%, hsl(60, 85%, 35%) 100%);
+  }
+
+  .mood-reflective-bg {
+    background: linear-gradient(135deg, var(--mood-reflective) 0%, hsl(240, 45%, 55%) 100%);
+  }
+}
+
+@layer utilities {
+  .text-mood-happy {
+    color: var(--mood-happy);
+  }
+
+  .text-mood-stressed {
+    color: var(--mood-stressed);
+  }
+
+  .text-mood-calm {
+    color: var(--mood-calm);
+  }
+
+  .text-mood-motivated {
+    color: var(--mood-motivated);
+  }
+
+  .text-mood-curious {
+    color: var(--mood-curious);
+  }
+
+  .text-mood-grateful {
+    color: var(--mood-grateful);
+  }
+
+  .text-mood-excited {
+    color: var(--mood-excited);
+  }
+
+  .text-mood-peaceful {
+    color: var(--mood-peaceful);
+  }
+
+  .text-mood-energetic {
+    color: var(--mood-energetic);
+  }
+
+  .text-mood-reflective {
+    color: var(--mood-reflective);
+  }
+
+  .bg-mood-happy {
+    background-color: var(--mood-happy);
+  }
+
+  .bg-mood-stressed {
+    background-color: var(--mood-stressed);
+  }
+
+  .bg-mood-calm {
+    background-color: var(--mood-calm);
+  }
+
+  .bg-mood-motivated {
+    background-color: var(--mood-motivated);
+  }
+
+  .bg-mood-curious {
+    background-color: var(--mood-curious);
+  }
+
+  .bg-mood-grateful {
+    background-color: var(--mood-grateful);
+  }
+
+  .bg-mood-excited {
+    background-color: var(--mood-excited);
+  }
+
+  .bg-mood-peaceful {
+    background-color: var(--mood-peaceful);
+  }
+
+  .bg-mood-energetic {
+    background-color: var(--mood-energetic);
+  }
+
+  .bg-mood-reflective {
+    background-color: var(--mood-reflective);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+@keyframes mood-glow {
+  0% { box-shadow: 0 0 5px currentColor; }
+  100% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.animate-mood-glow {
+  animation: mood-glow 2s ease-in-out infinite alternate;
+}
