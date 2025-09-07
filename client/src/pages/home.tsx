@@ -103,10 +103,35 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleQuickShare = () => {
-    // Placeholder for quick share functionality
-    toast({ title: "Quick Share", description: "Initiating quick share..." });
-    // Implement actual share logic here
+  const handleQuickShare = async () => {
+    try {
+      const shareData = {
+        title: 'Aura - Share Your Mood Journey',
+        text: 'Join me on Aura, where I share my daily moods and connect with others through authentic experiences!',
+        url: window.location.origin,
+      };
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast({ 
+          title: "Shared successfully!", 
+          description: "Thanks for spreading the aura!" 
+        });
+      } else {
+        await navigator.clipboard.writeText(`${shareData.text}\n\n${shareData.url}`);
+        toast({ 
+          title: "Link copied!", 
+          description: "Share link copied to clipboard" 
+        });
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      toast({ 
+        title: "Share failed", 
+        description: "Unable to share the app", 
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleQuickVibe = () => {

@@ -258,13 +258,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
 
-      // Simulated upload - replace with actual cloud storage upload
-      // The edited snippet uses a placeholder path, which we adopt.
-      const imageUrl = `/uploads/${req.file.filename}`; // Placeholder as per edited snippet
+      // Generate unique filename
+      const timestamp = Date.now();
+      const filename = `image_${timestamp}_${req.file.originalname}`;
+      const imageUrl = `/uploads/${filename}`;
+
+      // Save file to uploads directory (in production, use cloud storage)
+      const fs = require('fs');
+      const path = require('path');
+      const uploadDir = path.join(process.cwd(), 'uploads');
+      
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
 
       res.json({
         imageUrl,
-        message: "Image uploaded successfully" // Added success message as per edited snippet
+        message: "Image uploaded successfully"
       });
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -281,13 +293,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No audio file provided" });
       }
 
-      // Simulated upload - replace with actual cloud storage upload
-      // The edited snippet uses a placeholder path, which we adopt.
-      const audioUrl = `/uploads/${req.file.filename}`; // Placeholder as per edited snippet
+      // Generate unique filename
+      const timestamp = Date.now();
+      const filename = `audio_${timestamp}_${req.file.originalname}`;
+      const audioUrl = `/uploads/${filename}`;
+
+      // Save file to uploads directory (in production, use cloud storage)
+      const fs = require('fs');
+      const path = require('path');
+      const uploadDir = path.join(process.cwd(), 'uploads');
+      
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
 
       res.json({
         audioUrl,
-        message: "Audio uploaded successfully" // Added success message as per edited snippet
+        message: "Audio uploaded successfully"
       });
     } catch (error) {
       console.error("Error uploading audio:", error);
@@ -409,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         location: location || null,
         isAnonymous: isAnonymous || false,
         userId,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
       };
 
       // Insert the new post into the database using Drizzle ORM

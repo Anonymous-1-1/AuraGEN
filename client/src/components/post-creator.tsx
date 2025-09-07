@@ -112,7 +112,14 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('image', file);
-      const response = await apiRequest('POST', '/api/upload/image', formData);
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
       return response.json();
     },
   });
@@ -121,7 +128,14 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('audio', file);
-      const response = await apiRequest('POST', '/api/upload/audio', formData);
+      const response = await fetch('/api/upload/audio', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
       return response.json();
     },
   });
