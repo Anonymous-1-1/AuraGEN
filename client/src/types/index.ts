@@ -7,16 +7,16 @@ export interface MoodOption {
 }
 
 export const MOOD_OPTIONS: MoodOption[] = [
-  { id: 'happy', name: 'Happy', emoji: '😊', color: 'text-mood-happy', bgClass: 'mood-happy-bg' },
-  { id: 'stressed', name: 'Stressed', emoji: '😰', color: 'text-mood-stressed', bgClass: 'mood-stressed-bg' },
-  { id: 'calm', name: 'Calm', emoji: '😌', color: 'text-mood-calm', bgClass: 'mood-calm-bg' },
-  { id: 'motivated', name: 'Motivated', emoji: '💪', color: 'text-mood-motivated', bgClass: 'mood-motivated-bg' },
-  { id: 'curious', name: 'Curious', emoji: '🤔', color: 'text-mood-curious', bgClass: 'mood-curious-bg' },
-  { id: 'grateful', name: 'Grateful', emoji: '🙏', color: 'text-mood-grateful', bgClass: 'mood-grateful-bg' },
-  { id: 'excited', name: 'Excited', emoji: '🤩', color: 'text-mood-excited', bgClass: 'mood-excited-bg' },
-  { id: 'peaceful', name: 'Peaceful', emoji: '☮️', color: 'text-mood-peaceful', bgClass: 'mood-peaceful-bg' },
+  { id: 'happy', name: 'Happy', emoji: '✨', color: 'text-mood-happy', bgClass: 'mood-happy-bg' },
+  { id: 'stressed', name: 'Stressed', emoji: '🌪️', color: 'text-mood-stressed', bgClass: 'mood-stressed-bg' },
+  { id: 'calm', name: 'Calm', emoji: '🌙', color: 'text-mood-calm', bgClass: 'mood-calm-bg' },
+  { id: 'motivated', name: 'Motivated', emoji: '🚀', color: 'text-mood-motivated', bgClass: 'mood-motivated-bg' },
+  { id: 'curious', name: 'Curious', emoji: '🔍', color: 'text-mood-curious', bgClass: 'mood-curious-bg' },
+  { id: 'grateful', name: 'Grateful', emoji: '🌸', color: 'text-mood-grateful', bgClass: 'mood-grateful-bg' },
+  { id: 'excited', name: 'Excited', emoji: '🎉', color: 'text-mood-excited', bgClass: 'mood-excited-bg' },
+  { id: 'peaceful', name: 'Peaceful', emoji: '🕊️', color: 'text-mood-peaceful', bgClass: 'mood-peaceful-bg' },
   { id: 'energetic', name: 'Energetic', emoji: '⚡', color: 'text-mood-energetic', bgClass: 'mood-energetic-bg' },
-  { id: 'reflective', name: 'Reflective', emoji: '🤔', color: 'text-mood-reflective', bgClass: 'mood-reflective-bg' },
+  { id: 'reflective', name: 'Reflective', emoji: '🌅', color: 'text-mood-reflective', bgClass: 'mood-reflective-bg' },
 ];
 
 export interface TabOption {

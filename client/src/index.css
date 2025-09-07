@@ -127,19 +127,22 @@
 
 @layer components {
   .glassmorphism {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
   }
 
   .mood-card {
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
 
   .mood-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(139, 69, 219, 0.2);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(139, 69, 219, 0.3);
+    backdrop-filter: blur(25px);
   }
 
   .aura-tree {
