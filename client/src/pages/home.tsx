@@ -11,6 +11,7 @@ import { TimeCapsule } from "@/components/time-capsule";
 import { GlobalMap } from "@/components/global-map";
 import { AuraTree } from "@/components/aura-tree";
 import { WhisperMode } from "@/components/whisper-mode";
+import { FloatingActionButton } from "@/components/floating-action-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -77,7 +78,7 @@ export default function Home() {
   const updateDynamicBackground = (mood?: string) => {
     const body = document.body;
     const hour = new Date().getHours();
-    
+
     if (mood) {
       const moodOption = MOOD_OPTIONS.find(m => m.id === mood);
       if (moodOption) {
@@ -85,7 +86,7 @@ export default function Home() {
         return;
       }
     }
-    
+
     // Fallback to time-based background
     if (hour >= 6 && hour < 12) {
       body.style.background = 'linear-gradient(135deg, hsl(222, 84%, 4%) 0%, hsl(45, 50%, 10%) 100%)';
@@ -101,6 +102,18 @@ export default function Home() {
     const interval = setInterval(updateDynamicBackground, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleQuickShare = () => {
+    // Placeholder for quick share functionality
+    toast({ title: "Quick Share", description: "Initiating quick share..." });
+    // Implement actual share logic here
+  };
+
+  const handleQuickVibe = () => {
+    // Placeholder for quick vibe functionality
+    toast({ title: "Quick Vibe", description: "Setting a quick vibe..." });
+    // Implement actual vibe logic here
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -126,7 +139,7 @@ export default function Home() {
                   {globalStats?.slice(0, 3).map((stat: any) => {
                     const moodOption = MOOD_OPTIONS.find(m => m.id === stat.mood);
                     const percentage = Math.round((stat.count / 1000) * 100); // Rough calculation
-                    
+
                     return (
                       <div key={stat.mood} className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -184,7 +197,7 @@ export default function Home() {
   return (
     <div className="min-h-screen relative">
       <MoodParticles />
-      
+
       {/* Header */}
       <header className="glassmorphism fixed top-0 w-full z-50 p-4">
         <div className="flex items-center justify-between max-w-md mx-auto">
@@ -225,80 +238,16 @@ export default function Home() {
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNavigation 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        onProfileClick={() => setShowProfile(true)}
+      />
 
-      {/* Floating Action Button */}
-      <Button 
-        className="fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-r from-primary to-accent rounded-full shadow-lg hover:shadow-xl transition-all z-40"
-        size="icon"
-        data-testid="button-quick-share"
-      >
-        <i className="fas fa-plus text-white text-xl"></i>
-      </Button>
-
-      {/* Profile Modal */}
-      <Dialog open={showProfile} onOpenChange={setShowProfile}>
-        <DialogContent className="glassmorphism border-0 max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div className="text-center">
-              <img 
-                src={user?.profileImageUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&h=120"} 
-                alt="Profile" 
-                className="w-20 h-20 rounded-full object-cover mx-auto mb-4" 
-              />
-              <Button variant="outline" size="sm" data-testid="button-change-avatar">
-                Change Avatar
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Display Name</label>
-                <Input 
-                  defaultValue={user?.displayName || user?.firstName || ""} 
-                  data-testid="input-display-name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Bio</label>
-                <Textarea 
-                  rows={3} 
-                  placeholder="Tell us about yourself..." 
-                  defaultValue={user?.bio || ""}
-                  data-testid="textarea-bio"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Location</label>
-                <Input 
-                  defaultValue={user?.location || ""} 
-                  data-testid="input-location"
-                />
-              </div>
-            </div>
-            
-            <div className="flex space-x-3">
-              <Button 
-                variant="outline" 
-                className="flex-1" 
-                onClick={() => setShowProfile(false)}
-                data-testid="button-cancel-profile"
-              >
-                Cancel
-              </Button>
-              <Button 
-                className="flex-1" 
-                data-testid="button-save-profile"
-              >
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <FloatingActionButton 
+        onQuickShare={handleQuickShare}
+        onQuickVibe={handleQuickVibe}
+      />
     </div>
   );
 }

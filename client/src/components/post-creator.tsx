@@ -189,6 +189,26 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select a valid image file",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setImageFile(file);
       toast({
         title: "Photo selected",
@@ -282,7 +302,7 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
           <div className="flex space-x-3">
             <Button 
               variant="secondary" 
-              className="flex-1 relative"
+              className={`flex-1 relative transition-all duration-200 hover:scale-105 ${imageFile ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-primary/10'}`}
               data-testid="button-upload-photo"
             >
               <input
@@ -291,30 +311,37 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
                 onChange={handlePhotoUpload}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
-              <i className="fas fa-camera mr-2"></i>
+              <i className={`fas fa-camera mr-2 ${imageFile ? 'text-green-600' : ''}`}></i>
               <span>Photo</span>
-              {imageFile && <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></div>}
+              {imageFile && <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-check text-white text-xs"></i>
+              </div>}
             </Button>
             
             <Button 
               variant="secondary" 
-              className={`flex-1 ${(audioFile || musicUrl) ? 'bg-primary text-primary-foreground' : ''}`}
+              className={`flex-1 relative transition-all duration-200 hover:scale-105 ${(audioFile || musicUrl) ? 'bg-purple-100 text-purple-700 border-purple-300' : 'hover:bg-primary/10'}`}
               onClick={() => setShowMusicOptions(!showMusicOptions)}
               data-testid="button-upload-music"
             >
-              <i className="fas fa-music mr-2"></i>
+              <i className={`fas fa-music mr-2 ${(audioFile || musicUrl) ? 'text-purple-600' : ''}`}></i>
               <span>Music</span>
-              {(audioFile || musicUrl) && <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></div>}
+              {(audioFile || musicUrl) && <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-check text-white text-xs"></i>
+              </div>}
             </Button>
             
             <Button 
               variant="secondary" 
-              className={`flex-1 ${isSchedulingCapsule ? 'bg-primary text-primary-foreground' : ''}`}
+              className={`flex-1 relative transition-all duration-200 hover:scale-105 ${isSchedulingCapsule ? 'bg-blue-100 text-blue-700 border-blue-300' : 'hover:bg-primary/10'}`}
               onClick={() => setIsSchedulingCapsule(!isSchedulingCapsule)}
               data-testid="button-schedule-capsule"
             >
-              <i className="fas fa-clock mr-2"></i>
+              <i className={`fas fa-clock mr-2 ${isSchedulingCapsule ? 'text-blue-600' : ''}`}></i>
               <span>Capsule</span>
+              {isSchedulingCapsule && <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                <i className="fas fa-check text-white text-xs"></i>
+              </div>}
             </Button>
           </div>
 
@@ -409,15 +436,22 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
           )}
 
           <Button 
-            className="w-full font-semibold"
+            className="w-full font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
             onClick={handleShare}
             disabled={createPostMutation.isPending || createTimeCapsuleMutation.isPending}
             data-testid="button-share-aura"
           >
             {createPostMutation.isPending || createTimeCapsuleMutation.isPending ? (
-              <i className="fas fa-spinner fa-spin mr-2"></i>
-            ) : null}
-            {isSchedulingCapsule ? 'Create Time Capsule' : 'Share Aura'}
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i>
+                <span>Sharing...</span>
+              </>
+            ) : (
+              <>
+                <i className="fas fa-sparkles mr-2"></i>
+                <span>{isSchedulingCapsule ? 'Create Time Capsule' : 'Share Aura'}</span>
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

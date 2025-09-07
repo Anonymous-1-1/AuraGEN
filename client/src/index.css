@@ -126,11 +126,19 @@
 }
 
 @layer components {
+  /* Enhanced Glassmorphism effect */
   .glassmorphism {
     background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: all 0.3s ease;
+  }
+
+  .glassmorphism:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   }
 
   .mood-card {
@@ -203,6 +211,31 @@
 
   .mood-reflective-bg {
     background: linear-gradient(135deg, var(--mood-reflective) 0%, hsl(240, 45%, 55%) 100%);
+  }
+
+  /* Button hover animations */
+  .btn-interactive {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-interactive:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-interactive:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Pulse animation for success states */
+  @keyframes success-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .success-pulse {
+    animation: success-pulse 0.3s ease-in-out;
   }
 }
 

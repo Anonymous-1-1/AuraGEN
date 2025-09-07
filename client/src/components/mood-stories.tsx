@@ -166,19 +166,44 @@ export function MoodStories() {
     setEditContent("");
   };
 
-  const handleSharePost = (post: PostWithUser) => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Check out this aura story',
-        text: post.content,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(`${post.content} - ${window.location.href}`);
-      toast({
-        title: "Success",
-        description: "Post link copied to clipboard!",
-      });
+  const handleSharePost = async (post: PostWithUser) => {
+    const shareData = {
+      title: `${post.user?.displayName || 'Someone'}'s Aura Story`,
+      text: `"${post.content}" - Feeling ${MOOD_OPTIONS.find(m => m.id === post.mood)?.name || 'good'} ${getMoodEmoji(post.mood)}`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast({
+          title: "Shared!",
+          description: "Aura story shared successfully",
+        });
+      } else {
+        await navigator.clipboard.writeText(`${shareData.text}\n\nCheck out more stories: ${shareData.url}`);
+        toast({
+          title: "Copied to clipboard!",
+          description: "Share this aura story with others",
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        // Fallback if sharing fails
+        try {
+          await navigator.clipboard.writeText(`${shareData.text}\n\nCheck out more stories: ${shareData.url}`);
+          toast({
+            title: "Copied to clipboard!",
+            description: "Share this aura story with others",
+          });
+        } catch {
+          toast({
+            title: "Share failed",
+            description: "Unable to share this story",
+            variant: "destructive",
+          });
+        }
+      }
     }
   };
 
@@ -310,22 +335,22 @@ export function MoodStories() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="flex items-center space-x-2 hover:text-red-500 transition-colors p-0 font-medium"
+                      className="flex items-center space-x-2 hover:text-red-500 transition-all duration-200 p-2 rounded-full hover:bg-red-50 hover:scale-110 font-medium group"
                       onClick={() => handleSendVibe(post.id, 'heart')}
                       disabled={sendVibeMutation.isPending}
                       data-testid={`button-send-vibe-${post.id}`}
                     >
-                      <i className="fas fa-heart"></i>
+                      <i className="fas fa-heart group-hover:animate-pulse"></i>
                       <span>{post.vibes?.length || 0} vibes</span>
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="flex items-center space-x-2 hover:text-blue-500 transition-colors p-0 font-medium"
+                      className="flex items-center space-x-2 hover:text-blue-500 transition-all duration-200 p-2 rounded-full hover:bg-blue-50 hover:scale-110 font-medium group"
                       onClick={() => handleSharePost(post)}
                       data-testid={`button-share-energy-${post.id}`}
                     >
-                      <i className="fas fa-share"></i>
+                      <i className="fas fa-share group-hover:animate-bounce"></i>
                       <span>Share energy</span>
                     </Button>
                   </div>

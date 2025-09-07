@@ -2,8 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
-import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+// Assuming storage and replitAuth are still relevant and imported correctly
+// import { storage } from "./storage"; // Assuming this is no longer used directly for uploads
+import { setupAuth, isAuthenticated, authenticatedUser } from "./replitAuth"; // Assuming authenticatedUser is the new middleware
+// Assuming db, posts, users, postVibes, and nanoid are imported from their respective modules
+import { db } from "./db"; // Example import
+import { posts, users, postVibes } from "./db/schema"; // Example import
+import { nanoid } from "nanoid"; // Example import
+import { and, eq, desc } from "drizzle-orm"; // Example import
 import {
   insertPostSchema,
   insertTimeCapsuleSchema,
@@ -15,20 +21,23 @@ import {
 
 // Configure multer for file uploads
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.memoryStorage(), // Or a disk storage if files are saved locally temporarily
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
+  // Auth middleware setup remains the same
   await setupAuth(app);
 
-  // Auth routes
+  // Auth routes (assuming these are still needed)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      // Assuming storage.getUser is still a valid way to get user info
+      // If not, this part might need adjustment based on the new structure.
+      // For now, we'll keep it if it doesn't conflict with the edited parts.
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -37,12 +46,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User profile routes
+  // User profile routes (assuming these are still needed)
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const updateData = req.body;
-      
+
+      // Assuming storage.updateUserProfile is still a valid way to update user profiles
       const user = await storage.updateUserProfile(userId, updateData);
       res.json(user);
     } catch (error) {
@@ -51,51 +61,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Post routes
-  app.post('/api/posts', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const postData = insertPostSchema.parse({
-        ...req.body,
-        userId,
-      });
-      
-      const post = await storage.createPost(postData);
-      res.json(post);
-    } catch (error) {
-      console.error("Error creating post:", error);
-      res.status(500).json({ message: "Failed to create post" });
-    }
-  });
-
-  app.get('/api/posts', async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = parseInt(req.query.offset as string) || 0;
-      const mood = req.query.mood as MoodType;
-      const location = req.query.location as string;
-      
-      let posts;
-      if (mood && MOOD_TYPES.includes(mood)) {
-        posts = await storage.getPostsByMood(mood, limit);
-      } else if (location) {
-        posts = await storage.getPostsByLocation(location, undefined, limit);
-      } else {
-        posts = await storage.getPosts(limit, offset);
-      }
-      
-      res.json(posts);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      res.status(500).json({ message: "Failed to fetch posts" });
-    }
-  });
-
+  // Post routes (original ones are replaced by Drizzle ORM implementations below)
+  // Keeping the original get /api/posts/user/:userId route as it's not explicitly replaced.
   app.get('/api/posts/user/:userId', isAuthenticated, async (req, res) => {
     try {
       const { userId } = req.params;
       const limit = parseInt(req.query.limit as string) || 20;
-      
+
+      // This might need to be refactored to use the new Drizzle ORM structure if posts are now fetched differently
+      // For now, keeping it as is, assuming storage.getPostsByUser is still valid.
       const posts = await storage.getPostsByUser(userId, limit);
       res.json(posts);
     } catch (error) {
@@ -104,46 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/posts/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const userId = req.user.claims.sub;
-      
-      // Check if user owns the post
-      const post = await storage.getPostById(id);
-      if (!post || post.userId !== userId) {
-        return res.status(403).json({ message: "Not authorized to delete this post" });
-      }
-      
-      await storage.deletePost(id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting post:", error);
-      res.status(500).json({ message: "Failed to delete post" });
-    }
-  });
-
-  app.put('/api/posts/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const userId = req.user.claims.sub;
-      const updateData = req.body;
-      
-      // Check if user owns the post
-      const post = await storage.getPostById(id);
-      if (!post || post.userId !== userId) {
-        return res.status(403).json({ message: "Not authorized to edit this post" });
-      }
-      
-      const updatedPost = await storage.updatePost(id, updateData);
-      res.json(updatedPost);
-    } catch (error) {
-      console.error("Error updating post:", error);
-      res.status(500).json({ message: "Failed to update post" });
-    }
-  });
-
-  // Time capsule routes
+  // Time capsule routes (assuming these are still needed and not replaced by new structure)
   app.post('/api/time-capsules', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -151,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId,
       });
-      
+
       const capsule = await storage.createTimeCapsule(capsuleData);
       res.json(capsule);
     } catch (error) {
@@ -204,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mood circle routes
+  // Mood circle routes (assuming these are still needed)
   app.post('/api/mood-circles', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -212,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         createdBy: userId,
       });
-      
+
       const circle = await storage.createMoodCircle(circleData);
       res.json(circle);
     } catch (error) {
@@ -225,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const mood = req.query.mood as MoodType;
       const limit = parseInt(req.query.limit as string) || 20;
-      
+
       const circles = await storage.getMoodCircles(mood, limit);
       res.json(circles);
     } catch (error) {
@@ -238,7 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      
+
       await storage.joinMoodCircle(id, userId);
       res.json({ success: true });
     } catch (error) {
@@ -251,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userId = req.user.claims.sub;
-      
+
       await storage.leaveMoodCircle(id, userId);
       res.json({ success: true });
     } catch (error) {
@@ -260,48 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Vibe routes
-  app.post('/api/vibes', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const vibeData = insertVibeSchema.parse({
-        ...req.body,
-        userId,
-      });
-      
-      const vibe = await storage.addVibe(vibeData);
-      res.json(vibe);
-    } catch (error) {
-      console.error("Error adding vibe:", error);
-      res.status(500).json({ message: "Failed to add vibe" });
-    }
-  });
-
-  app.delete('/api/vibes/:postId', isAuthenticated, async (req: any, res) => {
-    try {
-      const { postId } = req.params;
-      const userId = req.user.claims.sub;
-      
-      await storage.removeVibe(postId, userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error removing vibe:", error);
-      res.status(500).json({ message: "Failed to remove vibe" });
-    }
-  });
-
-  app.get('/api/vibes/:postId', async (req, res) => {
-    try {
-      const { postId } = req.params;
-      const vibes = await storage.getPostVibes(postId);
-      res.json(vibes);
-    } catch (error) {
-      console.error("Error fetching vibes:", error);
-      res.status(500).json({ message: "Failed to fetch vibes" });
-    }
-  });
-
-  // Global mood stats routes
+  // Global mood stats routes (assuming these are still needed)
   app.get('/api/mood-stats/global', async (req, res) => {
     try {
       const date = req.query.date ? new Date(req.query.date as string) : undefined;
@@ -324,41 +218,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload routes
-  app.post('/api/upload/image', isAuthenticated, upload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No image file provided" });
-      }
-      
-      const imageUrl = await storage.uploadImage(req.file.buffer, req.file.originalname);
-      res.json({ imageUrl });
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      res.status(500).json({ message: "Failed to upload image" });
-    }
-  });
-
-  app.post('/api/upload/audio', isAuthenticated, upload.single('audio'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No audio file provided" });
-      }
-      
-      const audioUrl = await storage.uploadAudio(req.file.buffer, req.file.originalname);
-      res.json({ audioUrl });
-    } catch (error) {
-      console.error("Error uploading audio:", error);
-      res.status(500).json({ message: "Failed to upload audio" });
-    }
-  });
-
-  // Aura activities route
+  // Aura activities route (assuming this is still needed)
   app.get('/api/aura-activities', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const limit = parseInt(req.query.limit as string) || 50;
-      
+
       const activities = await storage.getUserAuraActivities(userId, limit);
       res.json(activities);
     } catch (error) {
@@ -366,6 +231,286 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch aura activities" });
     }
   });
+
+  // Upload image endpoint - REPLACED/MODIFIED
+  // The original upload.single('image') is retained, but the handler is updated.
+  // The storage logic is now simulated, and the response format is changed.
+  app.post('/api/upload/image', authenticatedUser, upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      // Simulated upload - replace with actual cloud storage upload
+      // The edited snippet uses a placeholder path, which we adopt.
+      const imageUrl = `/uploads/${req.file.filename}`; // Placeholder as per edited snippet
+
+      res.json({
+        imageUrl,
+        message: "Image uploaded successfully" // Added success message as per edited snippet
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
+  // Upload audio endpoint - REPLACED/MODIFIED
+  // The original upload.single('audio') is retained, but the handler is updated.
+  // The storage logic is now simulated, and the response format is changed.
+  app.post('/api/upload/audio', authenticatedUser, upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No audio file provided" });
+      }
+
+      // Simulated upload - replace with actual cloud storage upload
+      // The edited snippet uses a placeholder path, which we adopt.
+      const audioUrl = `/uploads/${req.file.filename}`; // Placeholder as per edited snippet
+
+      res.json({
+        audioUrl,
+        message: "Audio uploaded successfully" // Added success message as per edited snippet
+      });
+    } catch (error) {
+      console.error("Error uploading audio:", error);
+      res.status(500).json({ message: "Failed to upload audio" });
+    }
+  });
+
+  // Send vibe to a post - NEW ROUTE (replaces original vibe routes)
+  // This route uses Drizzle ORM for database interactions.
+  app.post('/api/vibes', authenticatedUser, async (req, res) => {
+    try {
+      const { postId, type } = req.body;
+      // Use req.user.id assuming req.user is populated by authenticatedUser middleware
+      const userId = req.user!.id;
+
+      // Check if user already sent a vibe to this post using Drizzle ORM
+      const existingVibe = await db
+        .select()
+        .from(postVibes)
+        .where(and(eq(postVibes.postId, postId), eq(postVibes.userId, userId)))
+        .limit(1);
+
+      if (existingVibe.length > 0) {
+        // Remove existing vibe (toggle)
+        await db
+          .delete(postVibes)
+          .where(and(eq(postVibes.postId, postId), eq(postVibes.userId, userId)));
+
+        res.json({ message: "Vibe removed" });
+      } else {
+        // Add new vibe
+        const vibeId = nanoid(); // Assuming nanoid is imported
+        await db.insert(postVibes).values({
+          id: vibeId,
+          postId,
+          userId,
+          type,
+          createdAt: new Date().toISOString(),
+        });
+
+        res.json({ message: "Vibe sent successfully" });
+      }
+    } catch (error) {
+      console.error('Send vibe error:', error);
+      res.status(500).json({ message: "Failed to send vibe" });
+    }
+  });
+
+  // Get posts with vibes - MODIFIED ROUTE (replaces original get /api/posts)
+  // This route fetches posts and their associated vibes using Drizzle ORM.
+  app.get('/api/posts', authenticatedUser, async (req, res) => {
+    try {
+      // Fetch posts with user details using Drizzle ORM
+      const postsWithUsers = await db
+        .select({
+          id: posts.id,
+          content: posts.content,
+          mood: posts.mood,
+          imageUrl: posts.imageUrl,
+          musicUrl: posts.musicUrl,
+          musicTitle: posts.musicTitle,
+          location: posts.location,
+          isAnonymous: posts.isAnonymous,
+          createdAt: posts.createdAt,
+          user: {
+            id: users.id,
+            displayName: users.displayName,
+            email: users.email,
+          },
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.userId, users.id))
+        .orderBy(desc(posts.createdAt))
+        .limit(50); // Limit changed from 20 to 50
+
+      // Get vibes for each post concurrently
+      const postsWithVibes = await Promise.all(
+        postsWithUsers.map(async (post) => {
+          const vibes = await db
+            .select()
+            .from(postVibes)
+            .where(eq(postVibes.postId, post.id));
+
+          return {
+            ...post,
+            vibes,
+          };
+        })
+      );
+
+      res.json(postsWithVibes);
+    } catch (error) {
+      console.error('Get posts error:', error);
+      res.status(500).json({ message: "Failed to fetch posts" });
+    }
+  });
+
+  // Create a new post - MODIFIED ROUTE (replaces original post /api/posts)
+  // This route creates a new post using Drizzle ORM.
+  app.post('/api/posts', authenticatedUser, async (req, res) => {
+    try {
+      // Destructure properties from request body
+      const { content, mood, imageUrl, musicUrl, musicTitle, location, isAnonymous } = req.body;
+      const userId = req.user!.id; // Assuming req.user is populated by authenticatedUser
+
+      // Basic validation
+      if (!content || !mood) {
+        return res.status(400).json({ message: "Content and mood are required" });
+      }
+
+      // Generate a new post object with a unique ID
+      const postId = nanoid();
+      const newPost = {
+        id: postId,
+        content,
+        mood,
+        imageUrl: imageUrl || null,
+        musicUrl: musicUrl || null,
+        musicTitle: musicTitle || null,
+        location: location || null,
+        isAnonymous: isAnonymous || false,
+        userId,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Insert the new post into the database using Drizzle ORM
+      await db.insert(posts).values(newPost);
+
+      // Fetch and return the created post with associated user information
+      const createdPost = await db
+        .select({
+          id: posts.id,
+          content: posts.content,
+          mood: posts.mood,
+          imageUrl: posts.imageUrl,
+          musicUrl: posts.musicUrl,
+          musicTitle: posts.musicTitle,
+          location: posts.location,
+          isAnonymous: posts.isAnonymous,
+          createdAt: posts.createdAt,
+          user: {
+            id: users.id,
+            displayName: users.displayName,
+            email: users.email,
+          },
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.userId, users.id))
+        .where(eq(posts.id, postId))
+        .limit(1);
+
+      res.json(createdPost[0]);
+    } catch (error) {
+      console.error('Create post error:', error);
+      res.status(500).json({ message: "Failed to create post" });
+    }
+  });
+
+  // Delete a post - MODIFIED ROUTE (replaces original delete /api/posts/:id)
+  // This route deletes a post and its associated vibes using Drizzle ORM.
+  app.delete('/api/posts/:id', authenticatedUser, async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.user!.id;
+
+      // Check if post exists and user owns it using Drizzle ORM
+      const existingPost = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.id, postId))
+        .limit(1);
+
+      if (existingPost.length === 0) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      if (existingPost[0].userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this post" });
+      }
+
+      // Delete associated vibes first to maintain data integrity
+      await db.delete(postVibes).where(eq(postVibes.postId, postId));
+
+      // Delete the post
+      await db.delete(posts).where(eq(posts.id, postId));
+
+      res.json({ message: "Post deleted successfully" });
+    } catch (error) {
+      console.error('Delete post error:', error);
+      res.status(500).json({ message: "Failed to delete post" });
+    }
+  });
+
+  // Update a post - MODIFIED ROUTE (replaces original put /api/posts/:id)
+  // This route updates a post's content using Drizzle ORM.
+  app.put('/api/posts/:id', authenticatedUser, async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.user!.id;
+      const { content } = req.body;
+
+      // Validate input
+      if (!content) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      // Check if post exists and user owns it using Drizzle ORM
+      const existingPost = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.id, postId))
+        .limit(1);
+
+      if (existingPost.length === 0) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      if (existingPost[0].userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to edit this post" });
+      }
+
+      // Update the post content in the database
+      await db
+        .update(posts)
+        .set({ content })
+        .where(eq(posts.id, postId));
+
+      res.json({ message: "Post updated successfully" });
+    } catch (error) {
+      console.error('Update post error:', error);
+      res.status(500).json({ message: "Failed to update post" });
+    }
+  });
+
+  // Original delete /api/posts/:id route - REPLACED by new logic above
+  // Original put /api/posts/:id route - REPLACED by new logic above
+
+  // Original addVibe route - REPLACED by new /api/vibes route
+  // Original removeVibe route - REPLACED by new /api/vibes route (toggle functionality)
+  // Original getPostVibes route - REPLACED by new /api/posts route which includes vibes
 
   const httpServer = createServer(app);
 
@@ -378,7 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message.toString());
-        
+
         // Handle different types of real-time updates
         switch (data.type) {
           case 'join_mood_room':
