@@ -155,3 +155,45 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return;
   }
 };
+
+export const authenticatedUser: RequestHandler = async (req, res, next) => {
+  const user = req.user as any;
+
+  if (!req.isAuthenticated() || !user.expires_at) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  if (now <= user.expires_at) {
+    // Add user info to request for easy access
+    req.user = {
+      id: user.claims.sub,
+      email: user.claims.email,
+      displayName: user.claims.first_name + ' ' + user.claims.last_name,
+      ...user.claims
+    };
+    return next();
+  }
+
+  const refreshToken = user.refresh_token;
+  if (!refreshToken) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
+  try {
+    const config = await getOidcConfig();
+    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+    updateUserSession(user, tokenResponse);
+    req.user = {
+      id: user.claims.sub,
+      email: user.claims.email,
+      displayName: user.claims.first_name + ' ' + user.claims.last_name,
+      ...user.claims
+    };
+    return next();
+  } catch (error) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+};
