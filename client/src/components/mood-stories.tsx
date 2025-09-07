@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { MOOD_OPTIONS, type PostWithUser } from "@/types";
 import { useState } from "react";
+import { Music } from "lucide-react";
 
 export function MoodStories() {
   const { toast } = useToast();
@@ -122,7 +123,7 @@ export function MoodStories() {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -239,7 +240,7 @@ export function MoodStories() {
             <div key={post.id} className={`relative glassmorphism rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300`}>
               {/* Mood-based glazy background overlay */}
               <div className={`absolute inset-0 ${MOOD_OPTIONS.find(m => m.id === post.mood)?.bgClass || 'mood-happy-bg'} opacity-10 rounded-2xl`}></div>
-              
+
               <div className="relative z-10 flex items-start space-x-4">
                 <div className={`w-14 h-14 ${MOOD_OPTIONS.find(m => m.id === post.mood)?.bgClass || 'mood-happy-bg'} rounded-2xl flex items-center justify-center shadow-lg`}>
                   <span className="text-2xl drop-shadow-sm">{getMoodEmoji(post.mood)}</span>
@@ -259,7 +260,7 @@ export function MoodStories() {
                         {formatTimeAgo(post.createdAt)}
                       </span>
                     </div>
-                    
+
                     {/* Action buttons - only show for own posts */}
                     {isOwner(post) && (
                       <div className="flex space-x-1">
@@ -286,7 +287,7 @@ export function MoodStories() {
                       </div>
                     )}
                   </div>
-                  
+
                   {editingPost === post.id ? (
                     <div className="mb-4 space-y-2">
                       <Textarea
@@ -315,7 +316,7 @@ export function MoodStories() {
                   ) : (
                     <p className="text-sm mb-4 text-foreground/90 leading-relaxed">{post.content}</p>
                   )}
-                  
+
                   {post.imageUrl && (
                     <img 
                       src={post.imageUrl} 
@@ -323,14 +324,45 @@ export function MoodStories() {
                       className="w-full h-40 object-cover rounded-xl mb-4 shadow-md" 
                     />
                   )}
-                  
+
                   {post.musicUrl && (
-                    <div className="flex items-center space-x-3 mb-4 p-3 bg-white/40 backdrop-blur rounded-xl border border-white/30">
-                      <i className="fas fa-music text-purple-600"></i>
-                      <span className="text-sm font-medium">{post.musicTitle || 'Music attached'}</span>
+                    <div className="px-3 py-2 bg-purple-50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Music className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-medium text-purple-800">
+                          {post.musicTitle || "Music"}
+                        </span>
+                      </div>
+                      {post.musicUrl.includes('youtube.com') || post.musicUrl.includes('youtu.be') ? (
+                        <div className="aspect-video">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${post.musicUrl.split('v=')[1]?.split('&')[0] || post.musicUrl.split('youtu.be/')[1]}`}
+                            className="w-full h-full rounded"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : post.musicUrl.includes('spotify.com') ? (
+                        <div className="h-20">
+                          <iframe
+                            src={`https://open.spotify.com/embed/${post.musicUrl.split('spotify.com/')[1]}`}
+                            className="w-full h-full rounded"
+                            allowTransparency={true}
+                            allow="encrypted-media"
+                          />
+                        </div>
+                      ) : (
+                        <a
+                          href={post.musicUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-purple-600 hover:underline"
+                        >
+                          Open music link
+                        </a>
+                      )}
                     </div>
                   )}
-                  
+
                   <div className="flex items-center space-x-6 text-sm">
                     <Button 
                       variant="ghost" 
@@ -358,7 +390,7 @@ export function MoodStories() {
               </div>
             </div>
           ))}
-          
+
           {(!posts || posts.length === 0) && (
             <div className="text-center text-muted-foreground py-12">
               <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center mx-auto mb-4">

@@ -5,11 +5,10 @@ import multer from "multer";
 // Assuming storage and replitAuth are still relevant and imported correctly
 // import { storage } from "./storage"; // Assuming this is no longer used directly for uploads
 import { setupAuth, isAuthenticated, authenticatedUser } from "./replitAuth"; // Assuming authenticatedUser is the new middleware
-// Assuming db, posts, users, postVibes, and nanoid are imported from their respective modules
-import { db } from "./db"; // Example import
-import { posts, users, postVibes } from "./db/schema"; // Example import
-import { nanoid } from "nanoid"; // Example import
-import { and, eq, desc } from "drizzle-orm"; // Example import
+import { db } from "./db";
+import { posts, users, vibes } from "@shared/schema";
+import { nanoid } from "nanoid";
+import { and, eq, desc } from "drizzle-orm";
 import {
   insertPostSchema,
   insertTimeCapsuleSchema,
@@ -289,26 +288,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already sent a vibe to this post using Drizzle ORM
       const existingVibe = await db
         .select()
-        .from(postVibes)
-        .where(and(eq(postVibes.postId, postId), eq(postVibes.userId, userId)))
+        .from(vibes)
+        .where(and(eq(vibes.postId, postId), eq(vibes.userId, userId)))
         .limit(1);
 
       if (existingVibe.length > 0) {
         // Remove existing vibe (toggle)
         await db
-          .delete(postVibes)
-          .where(and(eq(postVibes.postId, postId), eq(postVibes.userId, userId)));
+          .delete(vibes)
+          .where(and(eq(vibes.postId, postId), eq(vibes.userId, userId)));
 
         res.json({ message: "Vibe removed" });
       } else {
         // Add new vibe
-        const vibeId = nanoid(); // Assuming nanoid is imported
-        await db.insert(postVibes).values({
+        const vibeId = nanoid();
+        await db.insert(vibes).values({
           id: vibeId,
           postId,
           userId,
           type,
-          createdAt: new Date().toISOString(),
         });
 
         res.json({ message: "Vibe sent successfully" });
@@ -349,14 +347,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get vibes for each post concurrently
       const postsWithVibes = await Promise.all(
         postsWithUsers.map(async (post) => {
-          const vibes = await db
+          const postVibes = await db
             .select()
-            .from(postVibes)
-            .where(eq(postVibes.postId, post.id));
+            .from(vibes)
+            .where(eq(vibes.postId, post.id));
 
           return {
             ...post,
-            vibes,
+            vibes: postVibes,
           };
         })
       );
@@ -452,7 +450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Delete associated vibes first to maintain data integrity
-      await db.delete(postVibes).where(eq(postVibes.postId, postId));
+      await db.delete(vibes).where(eq(vibes.postId, postId));
 
       // Delete the post
       await db.delete(posts).where(eq(posts.id, postId));
@@ -461,6 +459,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete post error:', error);
       res.status(500).json({ message: "Failed to delete post" });
+    }
+  });
+
+  // Add music to post
+  app.post('/api/posts/:id/music', authenticatedUser, async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.user!.id;
+      const { musicUrl, musicTitle } = req.body;
+
+      // Validate music URL (YouTube or Spotify)
+      const isValidUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|open\.spotify\.com\/(track|playlist)\/)/i.test(musicUrl);
+      
+      if (!isValidUrl) {
+        return res.status(400).json({ message: "Invalid music URL. Please use YouTube or Spotify links." });
+      }
+
+      // Check if post exists and user owns it
+      const existingPost = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.id, postId))
+        .limit(1);
+
+      if (existingPost.length === 0) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      if (existingPost[0].userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to edit this post" });
+      }
+
+      // Update post with music
+      await db
+        .update(posts)
+        .set({ musicUrl, musicTitle })
+        .where(eq(posts.id, postId));
+
+      res.json({ message: "Music added successfully", musicUrl, musicTitle });
+    } catch (error) {
+      console.error('Add music error:', error);
+      res.status(500).json({ message: "Failed to add music" });
     }
   });
 

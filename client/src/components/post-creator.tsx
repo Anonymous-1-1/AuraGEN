@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { Camera, Music, MapPin } from "lucide-react";
 
 interface PostCreatorProps {
   selectedMood: string | null;
@@ -198,7 +199,7 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
         });
         return;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
@@ -208,7 +209,7 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
         });
         return;
       }
-      
+
       setImageFile(file);
       toast({
         title: "Photo selected",
@@ -230,6 +231,11 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
     }
   };
 
+  const validateMusicUrl = (url: string) => {
+    const regex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|open\.spotify\.com\/(track|playlist)\/)/i;
+    return regex.test(url);
+  };
+
   const handleMusicUrlSubmit = () => {
     if (!musicUrl.trim()) {
       toast({
@@ -240,23 +246,10 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
       return;
     }
 
-    // Validate URL format
-    const isValidSpotify = musicUrl.includes('spotify.com');
-    const isValidYouTube = musicUrl.includes('youtube.com') || musicUrl.includes('youtu.be');
-    
-    if (musicPlatform === 'spotify' && !isValidSpotify) {
+    if (!validateMusicUrl(musicUrl)) {
       toast({
-        title: "Error",
-        description: "Please enter a valid Spotify URL",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (musicPlatform === 'youtube' && !isValidYouTube) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid YouTube URL",
+        title: "Invalid Music URL",
+        description: "Please use a valid YouTube or Spotify link.",
         variant: "destructive",
       });
       return;
@@ -285,7 +278,7 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
             onChange={(e) => setContent(e.target.value)}
             data-testid="textarea-post-content"
           />
-          
+
           {isSchedulingCapsule && (
             <div>
               <label className="block text-sm font-medium mb-2">Unlock Date</label>
@@ -298,7 +291,7 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
               />
             </div>
           )}
-          
+
           <div className="flex space-x-3">
             <Button 
               variant="secondary" 
@@ -311,26 +304,26 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
                 onChange={handlePhotoUpload}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
-              <i className={`fas fa-camera mr-2 ${imageFile ? 'text-green-600' : ''}`}></i>
+              <Camera className="h-4 w-4 mr-2" />
               <span>Photo</span>
               {imageFile && <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
                 <i className="fas fa-check text-white text-xs"></i>
               </div>}
             </Button>
-            
+
             <Button 
               variant="secondary" 
               className={`flex-1 relative transition-all duration-200 hover:scale-105 ${(audioFile || musicUrl) ? 'bg-purple-100 text-purple-700 border-purple-300' : 'hover:bg-primary/10'}`}
               onClick={() => setShowMusicOptions(!showMusicOptions)}
               data-testid="button-upload-music"
             >
-              <i className={`fas fa-music mr-2 ${(audioFile || musicUrl) ? 'text-purple-600' : ''}`}></i>
+              <Music className="h-4 w-4 mr-2" />
               <span>Music</span>
               {(audioFile || musicUrl) && <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full flex items-center justify-center">
                 <i className="fas fa-check text-white text-xs"></i>
               </div>}
             </Button>
-            
+
             <Button 
               variant="secondary" 
               className={`flex-1 relative transition-all duration-200 hover:scale-105 ${isSchedulingCapsule ? 'bg-blue-100 text-blue-700 border-blue-300' : 'hover:bg-primary/10'}`}
@@ -411,7 +404,7 @@ export function PostCreator({ selectedMood }: PostCreatorProps) {
                   </Button>
                 </div>
               )}
-              
+
               {(audioFile || musicUrl) && (
                 <div className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
                   <i className="fas fa-check-circle text-green-500"></i>
