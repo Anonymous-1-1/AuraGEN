@@ -2,8 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
-// Assuming storage and replitAuth are still relevant and imported correctly
-// import { storage } from "./storage"; // Assuming this is no longer used directly for uploads
+import { storage } from "./storage";
 import { setupAuth, isAuthenticated, authenticatedUser } from "./replitAuth"; // Assuming authenticatedUser is the new middleware
 import { db } from "./db";
 import { posts, users, vibes } from "@shared/schema";
@@ -30,30 +29,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware setup remains the same
   await setupAuth(app);
 
-  // Auth routes (assuming these are still needed)
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Auth routes
+  app.get('/api/auth/user', authenticatedUser, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      // Assuming storage.getUser is still a valid way to get user info
-      // If not, this part might need adjustment based on the new structure.
-      // For now, we'll keep it if it doesn't conflict with the edited parts.
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const userId = req.user.id;
+      
+      // Get user from database using Drizzle ORM
+      const userResult = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (userResult.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(userResult[0]);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // User profile routes (assuming these are still needed)
-  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+  // User profile routes
+  app.patch('/api/user/profile', authenticatedUser, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const updateData = req.body;
 
-      // Assuming storage.updateUserProfile is still a valid way to update user profiles
-      const user = await storage.updateUserProfile(userId, updateData);
-      res.json(user);
+      // Update user using Drizzle ORM
+      await db
+        .update(users)
+        .set(updateData)
+        .where(eq(users.id, userId));
+
+      // Get updated user
+      const userResult = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      res.json(userResult[0]);
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
@@ -459,6 +477,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete post error:', error);
       res.status(500).json({ message: "Failed to delete post" });
+    }
+  });
+
+  // Share post endpoint
+  app.post('/api/posts/:id/share', authenticatedUser, async (req, res) => {
+    try {
+      const postId = req.params.id;
+      
+      // Get post with user details
+      const postResult = await db
+        .select({
+          id: posts.id,
+          content: posts.content,
+          mood: posts.mood,
+          imageUrl: posts.imageUrl,
+          musicUrl: posts.musicUrl,
+          musicTitle: posts.musicTitle,
+          location: posts.location,
+          isAnonymous: posts.isAnonymous,
+          createdAt: posts.createdAt,
+          user: {
+            id: users.id,
+            displayName: users.displayName,
+            email: users.email,
+          },
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.userId, users.id))
+        .where(eq(posts.id, postId))
+        .limit(1);
+
+      if (postResult.length === 0) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      const post = postResult[0];
+      const shareUrl = `${req.protocol}://${req.get('host')}/?post=${postId}`;
+      
+      res.json({
+        shareUrl,
+        title: `${post.user?.displayName || 'Someone'}'s Aura Story`,
+        description: post.content,
+        imageUrl: post.imageUrl,
+      });
+    } catch (error) {
+      console.error('Share post error:', error);
+      res.status(500).json({ message: "Failed to generate share link" });
     }
   });
 

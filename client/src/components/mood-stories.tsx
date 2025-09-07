@@ -8,6 +8,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { MOOD_OPTIONS, type PostWithUser } from "@/types";
 import { useState } from "react";
 import { Music } from "lucide-react";
+import { ShareButton } from "./share-button";
 
 export function MoodStories() {
   const { toast } = useToast();
@@ -167,47 +168,6 @@ export function MoodStories() {
     setEditContent("");
   };
 
-  const handleSharePost = async (post: PostWithUser) => {
-    const shareData = {
-      title: `${post.user?.displayName || 'Someone'}'s Aura Story`,
-      text: `"${post.content}" - Feeling ${MOOD_OPTIONS.find(m => m.id === post.mood)?.name || 'good'} ${getMoodEmoji(post.mood)}`,
-      url: window.location.href,
-    };
-
-    try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast({
-          title: "Shared!",
-          description: "Aura story shared successfully",
-        });
-      } else {
-        await navigator.clipboard.writeText(`${shareData.text}\n\nCheck out more stories: ${shareData.url}`);
-        toast({
-          title: "Copied to clipboard!",
-          description: "Share this aura story with others",
-        });
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        // Fallback if sharing fails
-        try {
-          await navigator.clipboard.writeText(`${shareData.text}\n\nCheck out more stories: ${shareData.url}`);
-          toast({
-            title: "Copied to clipboard!",
-            description: "Share this aura story with others",
-          });
-        } catch {
-          toast({
-            title: "Share failed",
-            description: "Unable to share this story",
-            variant: "destructive",
-          });
-        }
-      }
-    }
-  };
-
   const isOwner = (post: PostWithUser) => {
     return currentUser?.id === post.user?.id;
   };
@@ -264,9 +224,9 @@ export function MoodStories() {
                     {/* Action buttons - only show for own posts */}
                     {isOwner(post) && (
                       <div className="flex space-x-1">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-full opacity-70 hover:opacity-100 transition-all"
                           onClick={() => handleEditPost(post)}
                           disabled={editPostMutation.isPending}
@@ -274,9 +234,9 @@ export function MoodStories() {
                         >
                           <i className="fas fa-edit text-sm"></i>
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full opacity-70 hover:opacity-100 transition-all"
                           onClick={() => handleDeletePost(post.id)}
                           disabled={deletePostMutation.isPending}
@@ -297,15 +257,15 @@ export function MoodStories() {
                         rows={3}
                       />
                       <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           onClick={() => handleSaveEdit(post.id)}
                           disabled={editPostMutation.isPending}
                         >
                           Save
                         </Button>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={handleCancelEdit}
                         >
@@ -318,10 +278,10 @@ export function MoodStories() {
                   )}
 
                   {post.imageUrl && (
-                    <img 
-                      src={post.imageUrl} 
-                      alt="Post" 
-                      className="w-full h-40 object-cover rounded-xl mb-4 shadow-md" 
+                    <img
+                      src={post.imageUrl}
+                      alt="Post"
+                      className="w-full h-40 object-cover rounded-xl mb-4 shadow-md"
                     />
                   )}
 
@@ -364,9 +324,9 @@ export function MoodStories() {
                   )}
 
                   <div className="flex items-center space-x-6 text-sm">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="flex items-center space-x-2 hover:text-red-500 transition-all duration-200 p-2 rounded-full hover:bg-red-50 hover:scale-110 font-medium group"
                       onClick={() => handleSendVibe(post.id, 'heart')}
                       disabled={sendVibeMutation.isPending}
@@ -375,16 +335,7 @@ export function MoodStories() {
                       <i className="fas fa-heart group-hover:animate-pulse"></i>
                       <span>{post.vibes?.length || 0} vibes</span>
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="flex items-center space-x-2 hover:text-blue-500 transition-all duration-200 p-2 rounded-full hover:bg-blue-50 hover:scale-110 font-medium group"
-                      onClick={() => handleSharePost(post)}
-                      data-testid={`button-share-energy-${post.id}`}
-                    >
-                      <i className="fas fa-share group-hover:animate-bounce"></i>
-                      <span>Share energy</span>
-                    </Button>
+                    <ShareButton post={post} />
                   </div>
                 </div>
               </div>
