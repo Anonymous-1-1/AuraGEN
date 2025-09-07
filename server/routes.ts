@@ -500,23 +500,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Share post endpoint
+  // Share post route
   app.post('/api/posts/:id/share', authenticatedUser, async (req, res) => {
     try {
       const postId = req.params.id;
 
-      // Get post with user details
+      // Get post details
       const postResult = await db
         .select({
           id: posts.id,
           content: posts.content,
           mood: posts.mood,
           imageUrl: posts.imageUrl,
-          musicUrl: posts.musicUrl,
-          musicTitle: posts.musicTitle,
-          location: posts.location,
           isAnonymous: posts.isAnonymous,
-          createdAt: posts.createdAt,
           user: {
             id: users.id,
             displayName: users.displayName,
@@ -533,13 +529,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const post = postResult[0];
-      const shareUrl = `${req.protocol}://${req.get('host')}/?post=${postId}`;
+      const baseUrl = req.get('host')?.includes('replit.dev')
+        ? `https://${req.get('host')}`
+        : `${req.protocol}://${req.get('host')}`;
+      const shareUrl = `${baseUrl}/?post=${postId}`;
+
+      const userName = post.isAnonymous ? 'Anonymous' : (post.user?.displayName || 'Aura User');
 
       res.json({
         shareUrl,
-        title: `${post.user?.displayName || 'Someone'}'s Aura Story`,
-        description: post.content,
+        title: `${userName}'s Aura Story`,
+        description: post.content.slice(0, 200) + (post.content.length > 200 ? '...' : ''),
         imageUrl: post.imageUrl,
+        mood: post.mood,
       });
     } catch (error) {
       console.error('Share post error:', error);
