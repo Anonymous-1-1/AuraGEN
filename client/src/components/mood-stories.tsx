@@ -221,32 +221,7 @@ export function MoodStories() {
                       </span>
                     </div>
 
-                    {/* Action buttons - only show for own posts */}
-                    {isOwner(post) && (
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-full opacity-70 hover:opacity-100 transition-all"
-                          onClick={() => handleEditPost(post)}
-                          disabled={editPostMutation.isPending}
-                          data-testid={`button-edit-post-${post.id}`}
-                        >
-                          <i className="fas fa-edit text-sm"></i>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full opacity-70 hover:opacity-100 transition-all"
-                          onClick={() => handleDeletePost(post.id)}
-                          disabled={deletePostMutation.isPending}
-                          data-testid={`button-delete-post-${post.id}`}
-                        >
-                          <i className="fas fa-trash text-sm"></i>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                    iv>
 
                   {editingPost === post.id ? (
                     <div className="mb-4 space-y-2">
@@ -306,7 +281,6 @@ export function MoodStories() {
                           <iframe
                             src={`https://open.spotify.com/embed/${post.musicUrl.split('spotify.com/')[1]}`}
                             className="w-full h-full rounded"
-                            allowTransparency={true}
                             allow="encrypted-media"
                           />
                         </div>
@@ -323,19 +297,49 @@ export function MoodStories() {
                     </div>
                   )}
 
-                  <div className="flex items-center space-x-6 text-sm">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center space-x-2 hover:text-red-500 transition-all duration-200 p-2 rounded-full hover:bg-red-50 hover:scale-110 font-medium group"
-                      onClick={() => handleSendVibe(post.id, 'heart')}
-                      disabled={sendVibeMutation.isPending}
-                      data-testid={`button-send-vibe-${post.id}`}
-                    >
-                      <i className="fas fa-heart group-hover:animate-pulse"></i>
-                      <span>{post.vibes?.length || 0} vibes</span>
-                    </Button>
-                    <ShareButton post={post} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-6 text-sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center space-x-2 hover:text-red-500 transition-all duration-200 p-2 rounded-full hover:bg-red-50 hover:scale-110 font-medium group"
+                        onClick={() => handleSendVibe(post.id, 'heart')}
+                        disabled={sendVibeMutation.isPending}
+                        data-testid={`button-send-vibe-${post.id}`}
+                      >
+                        <i className="fas fa-heart group-hover:animate-pulse"></i>
+                        <span>{post.vibes?.length || 0} vibes</span>
+                      </Button>
+                      <ShareButton post={post} />
+                    </div>
+                    
+                    {/* Action buttons - always visible for post owners */}
+                    {isOwner(post) && (
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-full transition-all duration-200 hover:scale-110"
+                          onClick={() => handleEditPost(post)}
+                          disabled={editPostMutation.isPending}
+                          data-testid={`button-edit-post-${post.id}`}
+                          title="Edit post"
+                        >
+                          <i className="fas fa-edit text-sm"></i>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-all duration-200 hover:scale-110"
+                          onClick={() => handleDeletePost(post.id)}
+                          disabled={deletePostMutation.isPending}
+                          data-testid={`button-delete-post-${post.id}`}
+                          title="Delete post"
+                        >
+                          <i className="fas fa-trash text-sm"></i>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
