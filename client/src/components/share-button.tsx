@@ -4,22 +4,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Share } from "lucide-react";
+import { type PostWithUser } from "@/types";
 
 interface ShareButtonProps {
-  postId: string;
-  content: string;
-  mood: string;
-  userName?: string;
+  post: PostWithUser;
   variant?: "default" | "ghost" | "outline";
   size?: "sm" | "md" | "lg";
   className?: string;
 }
 
 export function ShareButton({ 
-  postId, 
-  content, 
-  mood, 
-  userName, 
+  post, 
   variant = "ghost", 
   size = "sm",
   className = "" 
@@ -41,12 +36,13 @@ export function ShareButton({
 
   const handleShare = async () => {
     try {
-      const shareData = await sharePostMutation.mutateAsync(postId);
+      const shareData = await sharePostMutation.mutateAsync(post.id);
       
+      const userName = post.isAnonymous ? 'Anonymous' : (post.user?.displayName || 'Aura User');
       const webShareData = {
-        title: shareData.title || `${userName ? userName + "'s" : 'An'} Aura Story`,
-        text: `"${content.slice(0, 100)}${content.length > 100 ? '...' : ''}" - Feeling ${mood}`,
-        url: shareData.shareUrl || `${window.location.origin}/?post=${postId}`,
+        title: shareData.title || `${userName}'s Aura Story`,
+        text: `"${post.content.slice(0, 100)}${post.content.length > 100 ? '...' : ''}" - Feeling ${post.mood}`,
+        url: shareData.shareUrl || `${window.location.origin}/?post=${post.id}`,
       };
 
       // Try native share first
@@ -79,7 +75,7 @@ export function ShareButton({
       
       // Final fallback - just copy basic content
       try {
-        const fallbackText = `Check out this aura story: "${content}" - Feeling ${mood}\n\nShared from Aura App: ${window.location.origin}`;
+        const fallbackText = `Check out this aura story: "${post.content}" - Feeling ${post.mood}\n\nShared from Aura App: ${window.location.origin}`;
         await navigator.clipboard.writeText(fallbackText);
         toast({
           title: "Content copied!",

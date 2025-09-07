@@ -33,7 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', authenticatedUser, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
+
       // Get user from database using Drizzle ORM
       const userResult = await db
         .select()
@@ -249,9 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload image endpoint - REPLACED/MODIFIED
-  // The original upload.single('image') is retained, but the handler is updated.
-  // The storage logic is now simulated, and the response format is changed.
+  // Upload image endpoint
   app.post('/api/upload/image', authenticatedUser, upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
@@ -264,15 +262,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const imageUrl = `/uploads/${filename}`;
 
       // Save file to uploads directory (in production, use cloud storage)
-      const fs = require('fs');
-      const path = require('path');
-      const uploadDir = path.join(process.cwd(), 'uploads');
-      
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+      const fs = await import('fs');
+      const path = await import('path');
+      const uploadDir = path.default.join(process.cwd(), 'uploads');
+
+      if (!fs.default.existsSync(uploadDir)) {
+        fs.default.mkdirSync(uploadDir, { recursive: true });
       }
-      
-      fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+
+      fs.default.writeFileSync(path.default.join(uploadDir, filename), req.file.buffer);
 
       res.json({
         imageUrl,
@@ -284,9 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload audio endpoint - REPLACED/MODIFIED
-  // The original upload.single('audio') is retained, but the handler is updated.
-  // The storage logic is now simulated, and the response format is changed.
+  // Upload audio endpoint
   app.post('/api/upload/audio', authenticatedUser, upload.single('audio'), async (req, res) => {
     try {
       if (!req.file) {
@@ -299,15 +295,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const audioUrl = `/uploads/${filename}`;
 
       // Save file to uploads directory (in production, use cloud storage)
-      const fs = require('fs');
-      const path = require('path');
-      const uploadDir = path.join(process.cwd(), 'uploads');
-      
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+      const fs = await import('fs');
+      const path = await import('path');
+      const uploadDir = path.default.join(process.cwd(), 'uploads');
+
+      if (!fs.default.existsSync(uploadDir)) {
+        fs.default.mkdirSync(uploadDir, { recursive: true });
       }
-      
-      fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+
+      fs.default.writeFileSync(path.default.join(uploadDir, filename), req.file.buffer);
 
       res.json({
         audioUrl,
@@ -508,7 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/posts/:id/share', authenticatedUser, async (req, res) => {
     try {
       const postId = req.params.id;
-      
+
       // Get post with user details
       const postResult = await db
         .select({
@@ -538,7 +534,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const post = postResult[0];
       const shareUrl = `${req.protocol}://${req.get('host')}/?post=${postId}`;
-      
+
       res.json({
         shareUrl,
         title: `${post.user?.displayName || 'Someone'}'s Aura Story`,
@@ -560,7 +556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate music URL (YouTube or Spotify)
       const isValidUrl = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|open\.spotify\.com\/(track|playlist)\/)/i.test(musicUrl);
-      
+
       if (!isValidUrl) {
         return res.status(400).json({ message: "Invalid music URL. Please use YouTube or Spotify links." });
       }
