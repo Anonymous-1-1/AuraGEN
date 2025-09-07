@@ -1,17 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { MOOD_OPTIONS, type PostWithUser } from "@/types";
+import { useState } from "react";
 
 export function MoodStories() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [editingPost, setEditingPost] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ['/api/posts'],
+    retry: false,
+  });
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/user'],
     retry: false,
   });
 
@@ -75,6 +84,40 @@ export function MoodStories() {
     },
   });
 
+  const editPostMutation = useMutation({
+    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+      const response = await apiRequest('PUT', `/api/posts/${postId}`, { content });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      setEditingPost(null);
+      setEditContent("");
+      toast({
+        title: "Success",
+        description: "Post updated successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update post. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -99,6 +142,48 @@ export function MoodStories() {
     if (window.confirm('Are you sure you want to delete this post?')) {
       deletePostMutation.mutate(postId);
     }
+  };
+
+  const handleEditPost = (post: PostWithUser) => {
+    setEditingPost(post.id);
+    setEditContent(post.content);
+  };
+
+  const handleSaveEdit = (postId: string) => {
+    if (!editContent.trim()) {
+      toast({
+        title: "Error",
+        description: "Content cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+    editPostMutation.mutate({ postId, content: editContent });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+    setEditContent("");
+  };
+
+  const handleSharePost = (post: PostWithUser) => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Check out this aura story',
+        text: post.content,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(`${post.content} - ${window.location.href}`);
+      toast({
+        title: "Success",
+        description: "Post link copied to clipboard!",
+      });
+    }
+  };
+
+  const isOwner = (post: PostWithUser) => {
+    return currentUser?.id === post.user?.id;
   };
 
   if (isLoading) {
@@ -150,20 +235,61 @@ export function MoodStories() {
                       </span>
                     </div>
                     
-                    {/* Delete button - only show for own posts */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full opacity-70 hover:opacity-100 transition-all"
-                      onClick={() => handleDeletePost(post.id)}
-                      disabled={deletePostMutation.isPending}
-                      data-testid={`button-delete-post-${post.id}`}
-                    >
-                      <i className="fas fa-trash text-sm"></i>
-                    </Button>
+                    {/* Action buttons - only show for own posts */}
+                    {isOwner(post) && (
+                      <div className="flex space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-full opacity-70 hover:opacity-100 transition-all"
+                          onClick={() => handleEditPost(post)}
+                          disabled={editPostMutation.isPending}
+                          data-testid={`button-edit-post-${post.id}`}
+                        >
+                          <i className="fas fa-edit text-sm"></i>
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full opacity-70 hover:opacity-100 transition-all"
+                          onClick={() => handleDeletePost(post.id)}
+                          disabled={deletePostMutation.isPending}
+                          data-testid={`button-delete-post-${post.id}`}
+                        >
+                          <i className="fas fa-trash text-sm"></i>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
-                  <p className="text-sm mb-4 text-foreground/90 leading-relaxed">{post.content}</p>
+                  {editingPost === post.id ? (
+                    <div className="mb-4 space-y-2">
+                      <Textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="resize-none"
+                        rows={3}
+                      />
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleSaveEdit(post.id)}
+                          disabled={editPostMutation.isPending}
+                        >
+                          Save
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm mb-4 text-foreground/90 leading-relaxed">{post.content}</p>
+                  )}
                   
                   {post.imageUrl && (
                     <img 
@@ -196,6 +322,7 @@ export function MoodStories() {
                       variant="ghost" 
                       size="sm" 
                       className="flex items-center space-x-2 hover:text-blue-500 transition-colors p-0 font-medium"
+                      onClick={() => handleSharePost(post)}
                       data-testid={`button-share-energy-${post.id}`}
                     >
                       <i className="fas fa-share"></i>

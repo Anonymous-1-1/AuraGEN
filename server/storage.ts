@@ -122,6 +122,24 @@ export class DatabaseStorage implements IStorage {
     return newPost;
   }
 
+  async getPostById(id: string): Promise<Post | undefined> {
+    const [post] = await db.select().from(posts).where(eq(posts.id, id));
+    return post;
+  }
+
+  async deletePost(id: string): Promise<void> {
+    await db.delete(posts).where(eq(posts.id, id));
+  }
+
+  async updatePost(id: string, data: Partial<Post>): Promise<Post> {
+    const [updatedPost] = await db
+      .update(posts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(posts.id, id))
+      .returning();
+    return updatedPost;
+  }
+
   async getPosts(limit = 20, offset = 0): Promise<Post[]> {
     return await db
       .select()

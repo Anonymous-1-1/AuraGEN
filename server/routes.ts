@@ -104,6 +104,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/posts/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // Check if user owns the post
+      const post = await storage.getPostById(id);
+      if (!post || post.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this post" });
+      }
+      
+      await storage.deletePost(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      res.status(500).json({ message: "Failed to delete post" });
+    }
+  });
+
+  app.put('/api/posts/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const updateData = req.body;
+      
+      // Check if user owns the post
+      const post = await storage.getPostById(id);
+      if (!post || post.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to edit this post" });
+      }
+      
+      const updatedPost = await storage.updatePost(id, updateData);
+      res.json(updatedPost);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      res.status(500).json({ message: "Failed to update post" });
+    }
+  });
+
   // Time capsule routes
   app.post('/api/time-capsules', isAuthenticated, async (req: any, res) => {
     try {
